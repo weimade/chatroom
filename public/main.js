@@ -82,7 +82,7 @@ $('#sendMsgBtn').click(function(){
       $currentInput = $inputMessage.focus();
 
       // Tell the server your username
-      socket.emit('add user', username);
+      socket.emit('add user', {username:username,room:channelName});
     }
   }
 
