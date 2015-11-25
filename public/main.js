@@ -18,7 +18,7 @@ $.extend({
 
 
 $(function() {
-  var channelName = $.getUrlVar('name');
+  var channelName = decodeURIComponent($.getUrlVar('name'));
   var FADE_TIME = 150; // ms
   var TYPING_TIMER_LENGTH = 400; // ms
   var COLORS = [
@@ -43,12 +43,13 @@ $(function() {
   var lastTypingTime;
   var $currentInput = $usernameInput.focus();
 
+  $("#titleInner").html(channelName);
   var socket = io();
 $('.enterChatRoomBtn').click(function(){
-  setUsername(); 
+	setUsername(); 
 	if(channelName){
-		$("#chatRoomName").html(channelName+"讨论组");
-		$("#chatRoomName").show();
+  		$(".chatTitle").show();
+		$("#chatRoomName").html(channelName+" 讨论组");
 		
 	}
 });
@@ -76,6 +77,7 @@ $('#sendMsgBtn').click(function(){
 
     // If the username is valid
     if (username) {
+		$("#chatRoomName").show();
       $loginPage.fadeOut();
       $chatPage.show();
       $loginPage.off('click');
@@ -96,7 +98,8 @@ $('#sendMsgBtn').click(function(){
       $inputMessage.val('');
       addChatMessage({
         username: username,
-        message: message
+        message: message,
+        me:"me"
       });
       // tell server to execute 'new message' and send along one parameter
       socket.emit('new message', message);
@@ -118,15 +121,15 @@ $('#sendMsgBtn').click(function(){
       options.fade = false;
       $typingMessages.remove();
     }
-
+    var imgIdx = getUsernameAvator(data.username);
     var $usernameDiv = $('<span class="username"/>')
-      .text(data.username)
-      .css('color', getUsernameColor(data.username));
+      .css('color', getUsernameColor(data.username)).append($('<img src="http://112.74.80.186:3000/img/'+imgIdx+'.png"/>'));
     var $messageBodyDiv = $('<span class="messageBody">')
       .text(data.message);
 
     var typingClass = data.typing ? 'typing' : '';
-    var $messageDiv = $('<li class="message"/>')
+    var meStyle = data.me || "";
+    var $messageDiv = $('<li class="message '+meStyle+'"/>')
       .data('username', data.username)
       .addClass(typingClass)
       .append($usernameDiv, $messageBodyDiv);
@@ -211,6 +214,17 @@ $('#sendMsgBtn').click(function(){
     });
   }
 
+  // Gets the avator of a username through our hash function
+  function getUsernameAvator (username) {
+    // Compute hash code
+    var hash = 7;
+    for (var i = 0; i < username.length; i++) {
+       hash = username.charCodeAt(i) + (hash << 5) - hash;
+    }
+    // Calculate color
+    var index = Math.abs(hash % COLORS.length);
+    return index;
+  }
   // Gets the color of a username through our hash function
   function getUsernameColor (username) {
     // Compute hash code

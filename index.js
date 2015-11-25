@@ -38,6 +38,7 @@ io.on('connection', function (socket) {
     // add the client's username to the global list
     usernames[data["username"]] = data["username"];
     socket.room = data["room"];
+  console.log(socket.room);
     socket.join(data["room"]);
     ++numUsers;
     addedUser = true;
